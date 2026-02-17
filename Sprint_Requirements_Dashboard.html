@@ -479,7 +479,7 @@
         /* Mismatch table (Tab 1) - Title gets remaining space */
         #mismatchTable, #dvMismatchTable { table-layout: fixed; }
     </style>
-    <script src="allowed_users.txt"></script>
+    <script src="allowed_users.json"></script>
 </head>
 <body data-theme="dark">
     <!-- Warning for sandboxed/no-script environments -->
@@ -2087,6 +2087,7 @@
         // Auto fetch projects on PAT blur
         let projectsFetched = false;
         let isAuthorizedUser = false;
+        let currentUserRole = 'normal'; // 'super_admin', 'admin' or 'normal' - loaded from allowed_users.json
         let selectedProjects = [];
         
         async function autoFetchProjects() {
@@ -2126,12 +2127,17 @@
                         document.getElementById('patUserEmail').textContent = userEmail ? `(${userEmail})` : '';
                         document.getElementById('patUserId').textContent = `ID: ${userId}`;
                         
-                        // Access control - check user against allowed_users.txt (loaded via script tag)
+                        // Access control - check user against allowed_users.json (loaded via script tag)
                         const userNameLower = userName.toLowerCase().replace(/\s+/g, ' ').trim();
                         let accessAllowed = false;
-                        if (typeof ALLOWED_USERS_LIST !== 'undefined' && Array.isArray(ALLOWED_USERS_LIST)) {
-                            const allowedLower = ALLOWED_USERS_LIST.map(u => u.toLowerCase().replace(/\s+/g, ' ').trim());
-                            accessAllowed = allowedLower.includes(userNameLower);
+                        if (typeof ALLOWED_USERS_DATA !== 'undefined') {
+                            const matchedUser = (ALLOWED_USERS_DATA.users || []).find(u => 
+                                u.name.toLowerCase().replace(/\s+/g, ' ').trim() === userNameLower
+                            );
+                            if (matchedUser) {
+                                accessAllowed = true;
+                                currentUserRole = (matchedUser.role || 'normal').toLowerCase();
+                            }
                         }
                         
                         if (!accessAllowed) {
@@ -2469,7 +2475,8 @@
         let selectedAreaPaths = [];
         
         function updateSelectedAreas() {
-            const MAX_AREAS = 3;
+            const MAX_AREAS = ['admin','super_admin'].includes(currentUserRole) ? 999 : 3;
+            const isAdmin = ['admin','super_admin'].includes(currentUserRole);
             const allCheckboxes = document.querySelectorAll('.area-checkbox');
             const checkedCheckboxes = document.querySelectorAll('.area-checkbox:checked');
             
@@ -2505,8 +2512,9 @@
             const display = document.getElementById('selectedAreas');
             if (selectedAreaPaths.length > 0) {
                 const names = selectedAreaPaths.map(p => p.path.split('\\').pop()).join(', ');
-                const limitNote = atLimit ? ' <span style="color:#fbbf24;font-size:0.7rem;">(max reached)</span>' : '';
-                display.innerHTML = `✓ Selected: <strong>${selectedAreaPaths.length}</strong>/${MAX_AREAS} area(s) - ${names}${limitNote}`;
+                const limitNote = !isAdmin && atLimit ? ' <span style="color:#fbbf24;font-size:0.7rem;">(max reached)</span>' : '';
+                const countDisplay = isAdmin ? `${selectedAreaPaths.length}` : `${selectedAreaPaths.length}/${MAX_AREAS}`;
+                display.innerHTML = `✓ Selected: <strong>${countDisplay}</strong> area(s) - ${names}${limitNote}`;
             } else {
                 display.innerHTML = '<span style="color: #f87171;">Please select at least one area</span>';
             }
@@ -2537,10 +2545,10 @@
             });
         }
         
-        // Toggle all area checkboxes (max 3)
+        // Toggle all area checkboxes (admin=all, normal=max 3)
         function toggleAllAreas(event) {
             event.preventDefault();
-            const MAX_AREAS = 3;
+            const MAX_AREAS = ['admin','super_admin'].includes(currentUserRole) ? 999 : 3;
             const checkboxes = document.querySelectorAll('.area-checkbox');
             const checkedCount = document.querySelectorAll('.area-checkbox:checked').length;
             
@@ -2549,7 +2557,7 @@
                 checkboxes.forEach(cb => cb.checked = false);
                 event.target.textContent = 'Select All';
             } else {
-                // Check first 3 only
+                // Check areas (admin=all, normal=first 3)
                 let count = 0;
                 checkboxes.forEach(cb => {
                     cb.checked = count < MAX_AREAS;

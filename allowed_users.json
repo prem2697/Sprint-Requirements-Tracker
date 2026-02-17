@@ -1,0 +1,30 @@
+// Dashboard Access Control - Allowed Users
+// Roles: super_admin | admin | normal
+// super_admin & admin = All areas | normal = Max 3 areas
+var ALLOWED_USERS_DATA = {
+    "users": [
+        { "name": "Mayur Rana", "role": "super_admin" },
+        { "name": "Chetan Sangani", "role": "admin" },
+        { "name": "Niraj Modi", "role": "admin" },
+        { "name": "Tarun R Harkinia", "role": "normal" },
+        { "name": "Rahul J Dholaria", "role": "normal" },
+        { "name": "Harshit Sharma", "role": "normal" },
+        { "name": "Yogesh Siddhapura", "role": "normal" },
+        { "name": "Shaishav Patel", "role": "normal" },
+        { "name": "Raviraj Patgir", "role": "normal" },
+        { "name": "Priyakant K Patel", "role": "normal" },
+        { "name": "Hardik B Chauhan", "role": "normal" },
+        { "name": "Ankur Mistry", "role": "normal" },
+        { "name": "Ankil Patel", "role": "normal" },
+        { "name": "Ankur Patel", "role": "normal" },
+        { "name": "Arpit Patel", "role": "normal" },
+        { "name": "Dhara Bakrola", "role": "normal" },
+        { "name": "Dharmin Desai", "role": "normal" },
+        { "name": "Jackie Patel", "role": "normal" },
+        { "name": "Jainish Jariwala", "role": "normal" },
+        { "name": "Kailash Suthar", "role": "normal" },
+        { "name": "Rahul Jain", "role": "normal" },
+        { "name": "Vijay Patel", "role": "normal" },
+        { "name": "Akash Rana", "role": "normal" }
+    ]
+};
