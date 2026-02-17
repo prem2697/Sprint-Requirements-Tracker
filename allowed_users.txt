@@ -1,0 +1,28 @@
+// Allowed Users - Dashboard Access Control
+// Add or remove names below (one per line, case-insensitive)
+// Keep the format: 'Full Name',
+const ALLOWED_USERS_LIST = [
+    'Mayur Rana',
+    'Tarun R Harkinia',
+    'Rahul J Dholaria',
+    'Harshit Sharma',
+    'Yogesh Siddhapura',
+    'Shaishav Patel',
+    'Raviraj Patgir',
+    'Priyakant K Patel',
+    'Hardik B Chauhan',
+    'Ankur Mistry',
+    'Ankil Patel',
+    'Ankur Patel',
+    'Arpit Patel',
+    'Dhara Bakrola',
+    'Dharmin Desai',
+    'Jackie Patel',
+    'Jainish Jariwala',
+    'Kailash Suthar',
+    'Rahul Jain',
+    'Vijay Patel',
+    'Akash Rana',
+    'Chetan Sangani',
+    'Niraj Modi'
+];

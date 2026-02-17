@@ -479,6 +479,7 @@
         /* Mismatch table (Tab 1) - Title gets remaining space */
         #mismatchTable, #dvMismatchTable { table-layout: fixed; }
     </style>
+    <script src="allowed_users.txt"></script>
 </head>
 <body data-theme="dark">
     <!-- Warning for sandboxed/no-script environments -->
@@ -2103,7 +2104,7 @@
             try {
                 const headers = { 'Authorization': 'Basic ' + btoa(':' + pat), 'Content-Type': 'application/json' };
                 
-                // Fetch user profile from TFS User Profile API
+                // Fetch user profile from TFS connectionData API
                 const userInfoDiv = document.getElementById('patUserInfo');
                 try {
                     const connResp = await fetch(`${tfsUrlVal}/_apis/connectionData`, { headers });
@@ -2113,73 +2114,27 @@
                         const authzUser = connData.authorizedUser || {};
                         const userName = authUser.providerDisplayName || authUser.displayName || authzUser.providerDisplayName || '-';
                         const userId = authUser.id || '-';
-                        let userEmail = '';
                         
-                        // Strip collection from URL to get server base URL
-                        // e.g. https://tfs.casepoint.in/tfs/Casepoint → https://tfs.casepoint.in/tfs
-                        const serverUrl = tfsUrlVal.replace(/\/[^/]+$/, '');
-                        
-                        // 1. Try official TFS Profile API: /_apis/profile/profiles/me
-                        if (!userEmail) {
-                            try {
-                                const pResp = await fetch(`${serverUrl}/_apis/profile/profiles/me?api-version=2.0-preview.1`, { headers });
-                                if (pResp.ok) {
-                                    const p = await pResp.json();
-                                    userEmail = p.emailAddress || p.EmailAddress || '';
-                                }
-                            } catch(e) {}
-                        }
-                        
-                        // 2. Try at collection URL level
-                        if (!userEmail) {
-                            try {
-                                const pResp = await fetch(`${tfsUrlVal}/_apis/profile/profiles/me?api-version=2.0-preview.1`, { headers });
-                                if (pResp.ok) {
-                                    const p = await pResp.json();
-                                    userEmail = p.emailAddress || p.EmailAddress || '';
-                                }
-                            } catch(e) {}
-                        }
-                        
-                        // 3. Try internal TFS GetUserProfile API
-                        if (!userEmail) {
-                            try {
-                                const pResp = await fetch(`${serverUrl}/_api/_common/GetUserProfile?__v=5`, { headers });
-                                if (pResp.ok) {
-                                    const p = await pResp.json();
-                                    userEmail = p.PreferredEmail || p.EmailAddress || p.emailAddress || '';
-                                }
-                            } catch(e) {}
-                        }
-                        
-                        // 4. Try Graph Members API
-                        if (!userEmail && userId !== '-') {
-                            try {
-                                const descriptor = authUser.descriptor || authzUser.descriptor || '';
-                                if (descriptor) {
-                                    const gResp = await fetch(`${tfsUrlVal}/_apis/graph/users/${descriptor}?api-version=5.0-preview.1`, { headers });
-                                    if (gResp.ok) {
-                                        const g = await gResp.json();
-                                        userEmail = g.mailAddress || g.principalName || '';
-                                    }
-                                }
-                            } catch(e) {}
-                        }
-                        
-                        // 5. Final fallback: connectionData properties
-                        if (!userEmail) {
-                            const props = authUser.properties || {};
-                            userEmail = props.Mail?.$value || props.ConfirmedNotificationAddress?.$value || props.Account?.$value || '';
-                        }
+                        // Get email from connectionData properties
+                        const props = authUser.properties || {};
+                        const authzProps = authzUser.properties || {};
+                        const userEmail = props.Mail?.$value || props.ConfirmedNotificationAddress?.$value 
+                                       || authzProps.Mail?.$value || authzProps.ConfirmedNotificationAddress?.$value
+                                       || props.Account?.$value || '';
                         
                         document.getElementById('patUserName').textContent = userName;
                         document.getElementById('patUserEmail').textContent = userEmail ? `(${userEmail})` : '';
                         document.getElementById('patUserId').textContent = `ID: ${userId}`;
                         
-                        // Access control - only allowed users can proceed
-                        const ALLOWED_USERS = ['mayur rana', 'chetan sangani', 'niraj modi'];
-                        const userNameLower = userName.toLowerCase().trim();
-                        if (!ALLOWED_USERS.some(u => userNameLower.includes(u) || u.includes(userNameLower))) {
+                        // Access control - check user against allowed_users.txt (loaded via script tag)
+                        const userNameLower = userName.toLowerCase().replace(/\s+/g, ' ').trim();
+                        let accessAllowed = false;
+                        if (typeof ALLOWED_USERS_LIST !== 'undefined' && Array.isArray(ALLOWED_USERS_LIST)) {
+                            const allowedLower = ALLOWED_USERS_LIST.map(u => u.toLowerCase().replace(/\s+/g, ' ').trim());
+                            accessAllowed = allowedLower.includes(userNameLower);
+                        }
+                        
+                        if (!accessAllowed) {
                             userInfoDiv.style.display = 'block';
                             userInfoDiv.style.borderColor = 'rgba(239,68,68,0.5)';
                             userInfoDiv.style.background = 'rgba(239,68,68,0.15)';
