@@ -24,5 +24,6 @@ const ALLOWED_USERS_LIST = [
     'Vijay Patel',
     'Akash Rana',
     'Chetan Sangani',
-    'Niraj Modi'
+    'Niraj Modi',
+    'Jigar Patel'
 ];
