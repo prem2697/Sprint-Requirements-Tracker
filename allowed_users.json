@@ -4,7 +4,7 @@
 var ALLOWED_USERS_DATA = {
     "users": [
         { "name": "Mayur Rana", "role": "super_admin" },
-        { "name": "Chetan Sangani", "role": "admin" },
+        { "name": "Chetan Sanghani", "role": "admin" },
         { "name": "Tarun R Harkinia", "role": "normal" },
         { "name": "Rahul J Dholaria", "role": "normal" },
         { "name": "Harshit Sharma", "role": "normal" },
